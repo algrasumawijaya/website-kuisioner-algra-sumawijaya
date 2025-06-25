@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelola Pertanyaan - Admin Panel</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(to right, #003f7d, #0057a3);
+        color: white;
+        text-align: center;
+        padding-top: 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin-top: 20px;
+      }
+      .card {
+        background: white;
+        color: black;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      .btn-custom {
+        background: #ffcc00;
+        color: black;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+      }
+      .btn-custom:hover {
+        background: #ffaa00;
+        color: white;
+      }
+      .btn-back {
+        position: absolute;
+        left: 20px;
+        top: 20px;
+        background: #ffffff81;
+        color: #003f7d;
+        font-weight: bold;
+        padding: 10px 15px;
+        border-radius: 10px;
+        text-decoration: none;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease-in-out;
+      }
+      .btn-back:hover {
+        background: #003f7d;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="Admin.html" class="btn-back">&#8592; </a>
+
+    <div class="container">
+      <h2 class="text-center">📋 Kelola Pertanyaan Kuisioner</h2>
+
+      <div class="card mt-4">
+        <h4>Tambah Pertanyaan</h4>
+        <form id="formPertanyaan">
+          <div class="mb-3">
+            <label class="form-label">Teks Pertanyaan</label>
+            <input type="text" id="pertanyaan" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Jenis Pertanyaan</label>
+            <select id="jenis" class="form-control">
+              <option value="Esai">Esai</option>
+              <option value="Pilihan Ganda">Pilihan Ganda</option>
+            </select>
+          </div>
+          <div id="opsiContainer" class="mb-3 d-none">
+            <label class="form-label"
+              >Opsi Jawaban (Pisahkan dengan koma)</label
+            >
+            <input
+              type="text"
+              id="opsiJawaban"
+              class="form-control"
+              placeholder="1 (Sangat Tidak Setuju), 2 (Tidak Setuju), dst."
+            />
+          </div>
+          <button type="submit" class="btn btn-custom w-100">Tambah</button>
+        </form>
+      </div>
+
+      <div class="card mt-4">
+        <h4>Daftar Pertanyaan</h4>
+        <table class="table table-bordered mt-3">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Pertanyaan</th>
+              <th>Jenis</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelPertanyaan"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        function loadPertanyaan() {
+          let pertanyaanList =
+            JSON.parse(localStorage.getItem("pertanyaanList")) || [];
+          let html = "";
+          pertanyaanList.forEach((item, index) => {
+            html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.text}<br>
+                            ${
+                              item.jenis === "Pilihan Ganda"
+                                ? "<small class='text-muted'>Opsi: " +
+                                  item.opsi.join(", ") +
+                                  "</small>"
+                                : ""
+                            }
+                        </td>
+                        <td>${item.jenis}</td>
+                        <td>
+                            <button class='btn btn-warning btn-sm edit-btn' data-index='${index}'>Edit</button>
+                            <button class='btn btn-danger btn-sm delete-btn' data-index='${index}'>Hapus</button>
+                        </td>
+                    </tr>`;
+          });
+          $("#tabelPertanyaan").html(html);
+        }
+
+        $("#jenis").change(function () {
+          if ($(this).val() === "Pilihan Ganda") {
+            $("#opsiContainer").removeClass("d-none");
+          } else {
+            $("#opsiContainer").addClass("d-none");
+          }
+        });
+
+        $("#formPertanyaan").submit(function (e) {
+          e.preventDefault();
+          let pertanyaan = $("#pertanyaan").val().trim();
+          let jenis = $("#jenis").val();
+          let opsiJawaban =
+            jenis === "Pilihan Ganda"
+              ? $("#opsiJawaban").val().trim().split(",")
+              : [];
+
+          if (pertanyaan === "") {
+            alert("Pertanyaan tidak boleh kosong!");
+            return;
+          }
+
+          let pertanyaanList =
+            JSON.parse(localStorage.getItem("pertanyaanList")) || [];
+          pertanyaanList.push({
+            text: pertanyaan,
+            jenis: jenis,
+            opsi: opsiJawaban,
+          });
+          localStorage.setItem(
+            "pertanyaanList",
+            JSON.stringify(pertanyaanList)
+          );
+
+          $("#pertanyaan").val("");
+          $("#opsiJawaban").val("");
+          $("#opsiContainer").addClass("d-none");
+          loadPertanyaan();
+        });
+
+        $(document).on("click", ".edit-btn", function () {
+          let index = $(this).data("index");
+          let pertanyaanList =
+            JSON.parse(localStorage.getItem("pertanyaanList")) || [];
+          let item = pertanyaanList[index];
+
+          let newPertanyaan = prompt("Edit pertanyaan:", item.text);
+          if (newPertanyaan !== null && newPertanyaan.trim() !== "") {
+            pertanyaanList[index].text = newPertanyaan.trim();
+            localStorage.setItem(
+              "pertanyaanList",
+              JSON.stringify(pertanyaanList)
+            );
+            loadPertanyaan();
+          }
+        });
+
+        $(document).on("click", ".delete-btn", function () {
+          let index = $(this).data("index");
+          let pertanyaanList =
+            JSON.parse(localStorage.getItem("pertanyaanList")) || [];
+
+          if (confirm("Hapus pertanyaan ini?")) {
+            pertanyaanList.splice(index, 1);
+            localStorage.setItem(
+              "pertanyaanList",
+              JSON.stringify(pertanyaanList)
+            );
+            loadPertanyaan();
+          }
+        });
+
+        loadPertanyaan();
+      });
+    </script>
+  </body>
+</html>
