@@ -30,7 +30,7 @@
         padding: 30px;
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        max-width: 500px;
+        max-width: 600px;
         width: 100%;
         min-height: 65vh;
         display: flex;
@@ -66,6 +66,7 @@
         text-align: center;
         background: rgba(255, 255, 255, 0.1);
       }
+
       .form-check-input:checked + .form-check-label {
         background: #ffcc00;
         color: #003f7d;
@@ -82,6 +83,7 @@
         transition: 0.3s;
         box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4);
       }
+
       .btn-primary:hover {
         background: linear-gradient(135deg, #ffdb4d, #ffcc00);
         box-shadow: 0 6px 15px rgba(255, 204, 0, 0.6);
@@ -101,9 +103,38 @@
     </div>
 
     <script>
+      // Menyimpan pertanyaan default jika belum ada di localStorage
+      if (!localStorage.getItem("pertanyaanList")) {
+        const pertanyaanList = [
+          {
+            text: "Seberapa puas Anda terhadap kualitas produk Unilever?",
+            jenis: "Pilihan Ganda",
+            opsi: ["Sangat Puas", "Puas", "Cukup Puas", "Kurang Puas", "Tidak Puas"]
+          },
+          {
+            text: "Seberapa sering Anda membeli produk Unilever dalam sebulan?",
+            jenis: "Pilihan Ganda",
+            opsi: ["> 5 kali", "3-5 kali", "1-2 kali", "Jarang", "Tidak Pernah"]
+          },
+          {
+            text: "Apa alasan utama Anda memilih produk Unilever?",
+            jenis: "Isian"
+          },
+          {
+            text: "Apakah Anda akan merekomendasikan produk Unilever ke orang lain?",
+            jenis: "Pilihan Ganda",
+            opsi: ["Ya, pasti", "Mungkin", "Tidak yakin", "Tidak"]
+          },
+          {
+            text: "Saran atau kritik Anda untuk produk Unilever?",
+            jenis: "Isian"
+          }
+        ];
+        localStorage.setItem("pertanyaanList", JSON.stringify(pertanyaanList));
+      }
+
       $(document).ready(function () {
-        let pertanyaanList =
-          JSON.parse(localStorage.getItem("pertanyaanList")) || [];
+        let pertanyaanList = JSON.parse(localStorage.getItem("pertanyaanList")) || [];
         const pertanyaanContainer = $("#pertanyaanList");
 
         pertanyaanList.forEach((q, i) => {
@@ -112,15 +143,14 @@
             let opsiHTML = q.opsi
               .map(
                 (opsi, j) => `
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="jawaban${i}" id="jawaban${i}_${j}" value="${opsi}" required />
-                  <label class="form-check-label" for="jawaban${i}_${j}">${opsi}</label>
-                </div>`
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="jawaban${i}" id="jawaban${i}_${j}" value="${opsi}" required />
+                <label class="form-check-label" for="jawaban${i}_${j}">${opsi}</label>
+              </div>`
               )
               .join("");
             div.append(
-              `<label class="form-label fw-semibold">${q.text}</label>` +
-                opsiHTML
+              `<label class="form-label fw-semibold">${q.text}</label>` + opsiHTML
             );
           } else {
             div.append(`
@@ -139,6 +169,7 @@
             window.location.href = "biodata.html";
             return;
           }
+
           let jawaban = pertanyaanList.map((q, i) => {
             if (q.jenis === "Pilihan Ganda") {
               let selectedOption = $(`input[name="jawaban${i}"]:checked`).val();
@@ -154,8 +185,7 @@
             }
           });
 
-          let jawabanData =
-            JSON.parse(localStorage.getItem("jawabanData")) || [];
+          let jawabanData = JSON.parse(localStorage.getItem("jawabanData")) || [];
           jawabanData.push({ biodata, jawaban });
           localStorage.setItem("jawabanData", JSON.stringify(jawabanData));
 
